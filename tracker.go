@@ -225,6 +225,7 @@ func (t *SuperTracker) PrintFunc(f func()) error {
 	return t.GroupPrintFunc(defGroup, f)
 }
 
+// GroupPrintFunc
 func (t *SuperTracker) GroupPrintFunc(group string, f func()) error {
 	tGroup, err := t.findGroup(group)
 	if err != nil {
@@ -248,10 +249,12 @@ func (t *SuperTracker) PrintGroup(group string) {
 	tGroup.print()
 }
 
+// Status TODO
 func (t *SuperTracker) Status(group, task string) error {
 	return t.GroupStatus(defGroup, task)
 }
 
+// GroupStatus TODO
 func (t *SuperTracker) GroupStatus(group, task string) error {
 	tGroup, err := t.findGroup(group)
 	if err != nil {
@@ -261,6 +264,7 @@ func (t *SuperTracker) GroupStatus(group, task string) error {
 	return nil
 }
 
+// StartMeasure TODO
 func (t *SuperTracker) StartMeasure(tracker string) (func(), error) {
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
@@ -270,6 +274,7 @@ func (t *SuperTracker) StartMeasure(tracker string) (func(), error) {
 	return endMeasure, nil
 }
 
+// ProgressRate TODO
 func (t *SuperTracker) ProgressRate(tracker string) (string, error) {
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
@@ -278,6 +283,7 @@ func (t *SuperTracker) ProgressRate(tracker string) (string, error) {
 	return trckr.getRate(), nil
 }
 
+// TrueProgressRate TODO
 func (t *SuperTracker) TrueProgressRate(tracker string) (string, error) {
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
@@ -287,6 +293,7 @@ func (t *SuperTracker) TrueProgressRate(tracker string) (string, error) {
 	return trckr.getRate(), nil
 }
 
+// UnitsFunc TODO
 func (t *SuperTracker) UnitsFunc(tracker string, f func(int64) string) error {
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
@@ -296,6 +303,7 @@ func (t *SuperTracker) UnitsFunc(tracker string, f func(int64) string) error {
 	return nil
 }
 
+// InitSpdRate TODO
 func (t *SuperTracker) InitSpdRate(tracker string, n int) error {
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
@@ -305,6 +313,7 @@ func (t *SuperTracker) InitSpdRate(tracker string, n int) error {
 	return nil
 }
 
+// StartAutoMeasure TODO
 func (t *SuperTracker) StartAutoMeasure(tracker string, tick int) error {
 	op := "tracker.StartAutoMeasure()"
 	trckr, err := t.findTracker(tracker)
@@ -319,6 +328,7 @@ func (t *SuperTracker) StartAutoMeasure(tracker string, tick int) error {
 
 }
 
+// StopAutoMeasure TODO
 func (t *SuperTracker) StopAutoMeasure(tracker string) error {
 	op := "tracker.StartAutoMeasure()"
 	trckr, err := t.findTracker(tracker)
@@ -333,12 +343,14 @@ func (t *SuperTracker) StopAutoMeasure(tracker string) error {
 
 }
 
+// StartAutoPrint TODO
 func (t *SuperTracker) StartAutoPrint(d time.Duration) (err error) {
-	err = t.StartAutoPrintGroup(defGroup, d)
+	err = t.StartGroupAutoPrint(defGroup, d)
 	return
 }
 
-func (t *SuperTracker) StartAutoPrintGroup(group string, d time.Duration) error {
+// StartGroupAutoPrint TODO
+func (t *SuperTracker) StartGroupAutoPrint(group string, d time.Duration) error {
 	tGroup, err := t.findGroup(group)
 	if err != nil {
 		log.Errorln(errors.Extend("tracker.StartAutoPrintGroup()", err))
@@ -347,12 +359,14 @@ func (t *SuperTracker) StartAutoPrintGroup(group string, d time.Duration) error 
 	return nil
 }
 
+// StopAutoPrint TODO
 func (t *SuperTracker) StopAutoPrint() (err error) {
-	err = t.StopAutoPrintGroup(defGroup)
+	err = t.StopGroupAutoPrint(defGroup)
 	return
 }
 
-func (t *SuperTracker) StopAutoPrintGroup(group string) error {
+// StopGroupAutoPrint TODO
+func (t *SuperTracker) StopGroupAutoPrint(group string) error {
 	tGroup, err := t.findGroup(group)
 	if err != nil {
 		log.Errorln(errors.Extend("tracker.StopAutoPrintGroup()", err))
@@ -360,12 +374,15 @@ func (t *SuperTracker) StopAutoPrintGroup(group string) error {
 	tGroup.stopAutoPrint()
 	return nil
 }
+
+// RestartAutoPrint TODO
 func (t *SuperTracker) RestartAutoPrint() (err error) {
-	err = t.RestartAutoPrintGroup(defGroup)
+	err = t.RestartGroupAutoPrint(defGroup)
 	return
 }
 
-func (t *SuperTracker) RestartAutoPrintGroup(group string) error {
+// RestartGroupAutoPrint TODO
+func (t *SuperTracker) RestartGroupAutoPrint(group string) error {
 	tGroup, err := t.findGroup(group)
 	if err != nil {
 		log.Errorln(errors.Extend("tracker.RestartAutoPrintGroup()", err))
