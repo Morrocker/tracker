@@ -16,7 +16,7 @@ type trackerGroup struct {
 	format     format
 	autoPrint  bool
 	ticker     *time.Ticker
-	printFunc  func() string
+	printFunc  func()
 }
 
 type format struct {
@@ -99,7 +99,7 @@ func (g *trackerGroup) changeCurr(tracker string, value interface{}) error {
 	return nil
 }
 
-func (g *trackerGroup) setPrintFunc(f func() string) {
+func (g *trackerGroup) setPrintFunc(f func()) {
 	g.printFunc = f
 }
 

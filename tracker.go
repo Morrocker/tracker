@@ -218,11 +218,11 @@ func (t *SuperTracker) SetMode(tracker, mode string) (err error) {
 	return
 }
 
-func (t *SuperTracker) SetPrintFunc(f func() string) error {
+func (t *SuperTracker) SetPrintFunc(f func()) error {
 	return t.SetGroupPrintFunc(defGroup, f)
 }
 
-func (t *SuperTracker) SetGroupPrintFunc(group string, f func() string) error {
+func (t *SuperTracker) SetGroupPrintFunc(group string, f func()) error {
 	tGroup, err := t.findGroup(group)
 	if err != nil {
 		log.Errorln(errors.Extend("tracker.SetGroupPrintFunc()", err))
