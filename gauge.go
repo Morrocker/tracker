@@ -90,10 +90,13 @@ func (g *gauge) getRawValues() (int64, int64) {
 	defer g.lock.Unlock()
 	return g.current, g.total
 }
-func (g *gauge) getValues() (string, string) {
+func (g *gauge) getValues() (string, string, error) {
 	g.lock.Lock()
 	defer g.lock.Unlock()
-	return g.unitFunc(g.current), g.unitFunc(g.total)
+	if g.unitFunc == nil {
+		return "", "", errors.New("gauge.getValues()", "unitsFunction not set")
+	}
+	return g.unitFunc(g.current), g.unitFunc(g.total), nil
 }
 
 func (g *gauge) spdMeasureStart() func() {

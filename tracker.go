@@ -31,7 +31,7 @@ type tracker interface {
 	changeTotal(int64)
 	getOrder() int
 	getRawValues() (int64, int64)
-	getValues() (string, string)
+	getValues() (string, string, error)
 	print() string
 	spdMeasureStart() func()
 	setRateFunction(func(int64) string)
@@ -194,8 +194,7 @@ func (t *SuperTracker) GetValues(tracker string) (current string, total string, 
 		err = errors.Extend("tracker.GetValues()", err)
 		return
 	}
-	current, total = trckr.getValues()
-	return
+	return trckr.getValues()
 }
 
 // GetValues asdfasfd
