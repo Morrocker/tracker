@@ -34,7 +34,7 @@ type tracker interface {
 	getValues() (string, string, error)
 	print() string
 	spdMeasureStart() func()
-	setRateFunction(func(int64) string)
+	setUnitsFunc(func(int64) string)
 	getRawRate() int64
 	getRate() string
 	getETA() string
@@ -304,12 +304,12 @@ func (t *SuperTracker) GetTrueProgressRate(tracker string) (string, error) {
 	return trckr.getRate(), nil
 }
 
-func (t *SuperTracker) SetProgressFunction(tracker string, f func(int64) string) error {
+func (t *SuperTracker) SetUnitsFunc(tracker string, f func(int64) string) error {
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
 		return errors.Extend("tracker.SetProgressFunction()", err)
 	}
-	trckr.setRateFunction(f)
+	trckr.setUnitsFunc(f)
 	return nil
 }
 

@@ -110,7 +110,7 @@ func (g *gauge) getRawRate() int64 {
 	return g.speedRate.AvgRate()
 }
 
-func (g *gauge) setRateFunction(f func(int64) string) {
+func (g *gauge) setUnitsFunc(f func(int64) string) {
 	g.unitFunc = f
 }
 
