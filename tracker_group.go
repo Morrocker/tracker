@@ -106,7 +106,8 @@ func (g *trackerGroup) printFunc(f func()) {
 
 func (g *trackerGroup) print() {
 	if g.prntFunc == nil {
-		log.Error("tracker_group.print()", "print function is not set!")
+		log.Errorln(errors.New("tracker_group.print()", "print function is not set!"))
+		return
 	}
 	g.prntFunc()
 }
