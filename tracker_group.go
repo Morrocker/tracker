@@ -5,18 +5,19 @@ import (
 	"time"
 
 	"github.com/morrocker/errors"
+	"github.com/morrocker/log"
 )
 
 type trackerGroup struct {
 	trackers   map[string]tracker
 	order      []string
-	etaTracker string
+	etaTrckr   string
 	delayPrint bool
 	ticksLapse time.Duration
 	format     format
 	autoPrint  bool
 	ticker     *time.Ticker
-	printFunc  func()
+	prntFunc   func()
 }
 
 type format struct {
@@ -64,7 +65,7 @@ func (g *trackerGroup) findTracker(t string) (tracker, error) {
 	return tracker, err
 }
 
-func (g *trackerGroup) setLineMode(mode string) error {
+func (g *trackerGroup) lineMode(mode string) error {
 	switch mode {
 	case "singleline":
 		g.format.lineMode = "singleline"
@@ -76,12 +77,12 @@ func (g *trackerGroup) setLineMode(mode string) error {
 	return nil
 }
 
-func (g *trackerGroup) setEtaTracker(tracker string) error {
+func (g *trackerGroup) etaTracker(tracker string) error {
 	op := "tracker_group.SetEtaTracker()"
 	if _, err := g.findTracker(tracker); err != nil {
 		return errors.New(op, "Did not find tracker "+tracker)
 	}
-	g.etaTracker = tracker
+	g.etaTrckr = tracker
 	return nil
 }
 
@@ -99,12 +100,19 @@ func (g *trackerGroup) changeCurr(tracker string, value interface{}) error {
 	return nil
 }
 
-func (g *trackerGroup) setPrintFunc(f func()) {
-	g.printFunc = f
+func (g *trackerGroup) printFunc(f func()) {
+	g.prntFunc = f
 }
 
 func (g *trackerGroup) print() {
-	g.printFunc()
+	if g.prntFunc == nil {
+		log.Error("tracker_group.print()", "print function is not set!")
+	}
+	g.prntFunc()
+}
+
+func (g *trackerGroup) status(status string) {
+	g.format.status = status
 }
 
 func (g *trackerGroup) startAutoPrint(d time.Duration) {

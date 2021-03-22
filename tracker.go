@@ -71,35 +71,37 @@ func (t *SuperTracker) AddGaugeOn(group, tracker, printName string, total interf
 }
 
 // SetLineMode calls SetGroupLineMode using the default group
-func (t *SuperTracker) SetLineMode(mode string) (err error) {
-	return t.SetGroupLineMode(defGroup, mode)
+func (t *SuperTracker) LineMode(mode string) (err error) {
+	return t.GroupLineMode(defGroup, mode)
 }
 
 // SetGroupLineMode changes a groups line mode to the set value
-func (t *SuperTracker) SetGroupLineMode(group, mode string) error {
+func (t *SuperTracker) GroupLineMode(group, mode string) error {
 	op := "tracker.SetGroupLineMode()"
 	tGroup, err := t.findGroup(group)
 	if err != nil {
 		return errors.Extend(op, err)
 	}
-	tGroup.setLineMode("mode")
+	tGroup.lineMode("mode")
 	return nil
 }
 
-func (t *SuperTracker) SetEtaTracker(tracker string) error {
-	if err := t.SetGroupEtaTracker(defGroup, tracker); err != nil {
+// SetEtaTracker DO THIS
+func (t *SuperTracker) EtaTracker(tracker string) error {
+	if err := t.GroupEtaTracker(defGroup, tracker); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (t *SuperTracker) SetGroupEtaTracker(group, tracker string) error {
+// SetGroupEtaTracker DO THIS
+func (t *SuperTracker) GroupEtaTracker(group, tracker string) error {
 	op := "tracker.SetGroupEtaTracker"
 	tGroup, err := t.findGroup(group)
 	if err != nil {
 		return errors.Extend(op, err)
 	}
-	if err := tGroup.setEtaTracker(tracker); err != nil {
+	if err := tGroup.etaTracker(tracker); err != nil {
 		return errors.Extend(op, err)
 	}
 	return nil
@@ -146,7 +148,7 @@ func (t *SuperTracker) Reset(tracker string) error {
 	if err := t.SetCurr(tracker, 0); err != nil {
 		return errors.New(op, err)
 	}
-	if err := t.SetTotal(tracker, 0); err != nil {
+	if err := t.Total(tracker, 0); err != nil {
 		return errors.New(op, err)
 	}
 	return nil
@@ -173,7 +175,7 @@ func (t *SuperTracker) ChangeTotal(tracker string, value interface{}) error {
 }
 
 // SetTotal sets a trackers value to the one given
-func (t *SuperTracker) SetTotal(tracker string, value interface{}) error {
+func (t *SuperTracker) Total(tracker string, value interface{}) error {
 	op := "tracker.SetTotal()"
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
@@ -187,8 +189,8 @@ func (t *SuperTracker) SetTotal(tracker string, value interface{}) error {
 	return nil
 }
 
-// GetValues asdfasfd
-func (t *SuperTracker) GetValues(tracker string) (current string, total string, err error) {
+// GetValues TODO
+func (t *SuperTracker) Values(tracker string) (current string, total string, err error) {
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
 		err = errors.Extend("tracker.GetValues()", err)
@@ -197,8 +199,8 @@ func (t *SuperTracker) GetValues(tracker string) (current string, total string, 
 	return trckr.getValues()
 }
 
-// GetValues asdfasfd
-func (t *SuperTracker) GetRawValues(tracker string) (current int64, total int64, err error) {
+// GetRawValues TODO
+func (t *SuperTracker) RawValues(tracker string) (current int64, total int64, err error) {
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
 		err = errors.Extend("tracker.GetValues()", err)
@@ -208,8 +210,8 @@ func (t *SuperTracker) GetRawValues(tracker string) (current int64, total int64,
 	return
 }
 
-// SetMode asfasf
-func (t *SuperTracker) SetMode(tracker, mode string) (err error) {
+// SetMode TODO
+func (t *SuperTracker) Mode(tracker, mode string) (err error) {
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
 		return errors.Extend("tracker.SetMode()", err)
@@ -218,16 +220,17 @@ func (t *SuperTracker) SetMode(tracker, mode string) (err error) {
 	return
 }
 
-func (t *SuperTracker) SetPrintFunc(f func()) error {
-	return t.SetGroupPrintFunc(defGroup, f)
+// SetMode TODO
+func (t *SuperTracker) PrintFunc(f func()) error {
+	return t.GroupPrintFunc(defGroup, f)
 }
 
-func (t *SuperTracker) SetGroupPrintFunc(group string, f func()) error {
+func (t *SuperTracker) GroupPrintFunc(group string, f func()) error {
 	tGroup, err := t.findGroup(group)
 	if err != nil {
 		log.Errorln(errors.Extend("tracker.SetGroupPrintFunc()", err))
 	}
-	tGroup.setPrintFunc(f)
+	tGroup.printFunc(f)
 	return nil
 }
 
@@ -245,37 +248,17 @@ func (t *SuperTracker) PrintGroup(group string) {
 	tGroup.print()
 }
 
-// func (t *SuperTracker) setPrintOrder(group string) {
-// 	unordered := make(map[string]int)
-// 	ordered := []string{}
+func (t *SuperTracker) Status(group, task string) error {
+	return t.GroupStatus(defGroup, task)
+}
 
-// 	for key, tracker := range t.trackerGroups[group].trackers {
-// 		unordered[key] = tracker.getOrder()
-// 	}
-// 	for {
-// 		min := 0
-// 		minTracker := ""
-// 		for trackerName, orderVal := range unordered {
-// 			if min == 0 {
-// 				min = orderVal
-// 				minTracker = trackerName
-// 			} else if min > orderVal {
-// 				min = orderVal
-// 				minTracker = trackerName
-// 			}
-// 		}
-// 		ordered = append(ordered, minTracker)
-// 		delete(unordered, minTracker)
-// 		if len(unordered) == 0 {
-// 			break
-// 		}
-// 	}
-// 	t.trackerGroups[group].order = ordered
-// }
-
-// SetTask sdfs asfa // REWORK THIS
-func (t *SuperTracker) SetTask(group, task string) {
-	t.trackerGroups[group].format.status = task
+func (t *SuperTracker) GroupStatus(group, task string) error {
+	tGroup, err := t.findGroup(group)
+	if err != nil {
+		return errors.Extend("tracker.PrintGroup()", err)
+	}
+	tGroup.status(task)
+	return nil
 }
 
 func (t *SuperTracker) StartMeasure(tracker string) (func(), error) {
@@ -287,7 +270,7 @@ func (t *SuperTracker) StartMeasure(tracker string) (func(), error) {
 	return endMeasure, nil
 }
 
-func (t *SuperTracker) GetProgressRate(tracker string) (string, error) {
+func (t *SuperTracker) ProgressRate(tracker string) (string, error) {
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
 		return "", errors.Extend("tracker.GetProgressRate()", err)
@@ -295,7 +278,7 @@ func (t *SuperTracker) GetProgressRate(tracker string) (string, error) {
 	return trckr.getRate(), nil
 }
 
-func (t *SuperTracker) GetTrueProgressRate(tracker string) (string, error) {
+func (t *SuperTracker) TrueProgressRate(tracker string) (string, error) {
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
 		err = errors.Extend("tracker.GetTrueProgressRate()", err)
@@ -304,7 +287,7 @@ func (t *SuperTracker) GetTrueProgressRate(tracker string) (string, error) {
 	return trckr.getRate(), nil
 }
 
-func (t *SuperTracker) SetUnitsFunc(tracker string, f func(int64) string) error {
+func (t *SuperTracker) UnitsFunc(tracker string, f func(int64) string) error {
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
 		return errors.Extend("tracker.SetProgressFunction()", err)
