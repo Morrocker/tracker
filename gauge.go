@@ -17,6 +17,8 @@ type gauge struct {
 	mode        string
 	order       int
 	autoMeasure bool
+	ticksLapse  time.Duration
+	ticker      *time.Ticker
 	lock        *sync.Mutex
 	speedRate   *benchmark.SRate
 	unitFunc    func(int64) string
@@ -31,7 +33,7 @@ var modes = []string{
 	"divisionPercentage",
 }
 
-func newGauge(name string, total int64, order int) *gauge {
+func newGauge(name string, total int64) *gauge {
 	var lock sync.Mutex
 	newgauge := &gauge{
 		name:    name,
@@ -39,7 +41,6 @@ func newGauge(name string, total int64, order int) *gauge {
 		total:   total,
 		show:    defVis,
 		mode:    defGaugeMode,
-		order:   order,
 		lock:    &lock,
 	}
 	return newgauge
@@ -74,16 +75,6 @@ func (g *gauge) getMode() string {
 	g.lock.Lock()
 	defer g.lock.Unlock()
 	return g.mode
-}
-func (g *gauge) setOrder(n int) {
-	g.lock.Lock()
-	defer g.lock.Unlock()
-	g.order = n
-}
-func (g *gauge) getOrder() int {
-	g.lock.Lock()
-	defer g.lock.Unlock()
-	return g.order
 }
 func (g *gauge) getRawValues() (int64, int64) {
 	g.lock.Lock()
@@ -134,36 +125,39 @@ func (g *gauge) initSpdRate(n int) {
 	g.speedRate = spd
 }
 
-func (g *gauge) startAutoMeasure(tick int) error {
+func (g *gauge) startAutoMeasure(d time.Duration) error {
 	op := "tracker.startAutoMeasure()"
 	if g.speedRate == nil {
 		return errors.New(op, "speedRate variable not set")
 	}
-	if g.autoMeasure {
-		return nil
+	if err := g.checkTicker(); err != nil {
+		g.restartTicker()
 	}
-	g.autoMeasure = true
+	g.ticksLapse = d
+	g.ticker = time.NewTicker(d)
+
 	go func() {
-		for {
-			measureEnd := g.spdMeasureStart()
-			time.Sleep(time.Duration(tick) * time.Second)
-			measureEnd()
-			if !g.autoMeasure {
-				break
-			}
+		select {
+		case <-g.ticker.C:
+			g.print()
 		}
 	}()
 	return nil
 }
 
 func (g *gauge) stopAutoMeasure() error {
-	op := "tracker.startAutoMeasure()"
-	if g.speedRate == nil {
-		return errors.New(op, "speedRate variable not set")
-	} else if !g.autoMeasure {
-		return nil
+	if err := g.checkTicker(); err != nil {
+		return errors.Extend("gauge.stopAutoMeasure()", err)
 	}
-	g.autoMeasure = false
+	g.ticker.Stop()
+	return nil
+}
+
+func (g *gauge) restartTicker() error {
+	if g.ticker == nil {
+		return errors.New("tracker_group.resetTicker()", "Ticker hasn't been set")
+	}
+	g.ticker.Reset(g.ticksLapse)
 	return nil
 }
 
@@ -199,4 +193,11 @@ func (g *gauge) print() (format string) {
 		format = fmt.Sprintf("%s: %d/%d ( %d %% remaining )", g.name, g.current, g.total, per)
 	}
 	return
+}
+
+func (g *gauge) checkTicker() error {
+	if g.ticker == nil {
+		return errors.New("gauge.checkTicker()", "Ticker hasn't been set")
+	}
+	return nil
 }

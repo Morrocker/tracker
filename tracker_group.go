@@ -14,28 +14,16 @@ type trackerGroup struct {
 	etaTrckr   string
 	delayPrint bool
 	ticksLapse time.Duration
-	format     format
+	status     string
 	autoPrint  bool
 	ticker     *time.Ticker
 	prntFunc   func()
-}
-
-type format struct {
-	showStatus bool
-	separator  string
-	status     string
-	lineMode   string
 }
 
 // NewGroup creates a new tracker group within a SuperTracker.
 func newGroup(name string) *trackerGroup {
 	group := &trackerGroup{
 		trackers: make(map[string]tracker),
-		format: format{
-			lineMode:  defLineMode,
-			separator: defSeparator,
-		},
-		ticksLapse: defLapse,
 	}
 	return group
 }
@@ -50,7 +38,7 @@ func (g *trackerGroup) addGauge(trackerName, printName string, total interface{}
 	if err != nil {
 		return errors.New(op, err)
 	}
-	g.trackers[trackerName] = newGauge(trackerName, total64, 0) // FIX ORDER
+	g.trackers[trackerName] = newGauge(trackerName, total64)
 	return nil
 }
 
@@ -63,27 +51,6 @@ func (g *trackerGroup) findTracker(t string) (tracker, error) {
 	}
 	err := errors.New("tracker.findTracker()", "Did not find tracker "+t)
 	return tracker, err
-}
-
-func (g *trackerGroup) lineMode(mode string) error {
-	switch mode {
-	case "singleline":
-		g.format.lineMode = "singleline"
-	case "multiline":
-		g.format.lineMode = "multiline"
-	default:
-		return errors.New("tracker_group.SetLineMode()", "Set mode %s is not a valid mode")
-	}
-	return nil
-}
-
-func (g *trackerGroup) etaTracker(tracker string) error {
-	op := "tracker_group.SetEtaTracker()"
-	if _, err := g.findTracker(tracker); err != nil {
-		return errors.New(op, "Did not find tracker "+tracker)
-	}
-	g.etaTrckr = tracker
-	return nil
 }
 
 func (g *trackerGroup) changeCurr(tracker string, value interface{}) error {
@@ -112,8 +79,8 @@ func (g *trackerGroup) print() {
 	g.prntFunc()
 }
 
-func (g *trackerGroup) status(status string) {
-	g.format.status = status
+func (g *trackerGroup) setStatus(s string) {
+	g.status = s
 }
 
 func (g *trackerGroup) startAutoPrint(d time.Duration) {
@@ -133,7 +100,7 @@ func (g *trackerGroup) startAutoPrint(d time.Duration) {
 
 func (g *trackerGroup) stopAutoPrint() error {
 	if err := g.checkTicker(); err != nil {
-		return errors.Extend("tracker_group.resetTicker()", err)
+		return errors.Extend("tracker_group.stopAutoPrint()", err)
 	}
 	g.ticker.Stop()
 	return nil

@@ -23,13 +23,11 @@ type SuperTracker struct {
 }
 
 type tracker interface {
-	setOrder(int)
 	setMode(string)
 	setCurrent(int64)
 	setTotal(int64)
 	changeCurrent(int64)
 	changeTotal(int64)
-	getOrder() int
 	getRawValues() (int64, int64)
 	getValues() (string, string, error)
 	print() string
@@ -39,11 +37,11 @@ type tracker interface {
 	getRate() string
 	getETA() string
 	initSpdRate(int)
-	startAutoMeasure(int) error
+	startAutoMeasure(time.Duration) error
 	stopAutoMeasure() error
 }
 
-// New creates a new SuperTracker. The default group is created with it.
+// New creates a new SuperTracker. The 'default' group is created with it.
 func New() *SuperTracker {
 	tracker := &SuperTracker{
 		trackerGroups: make(map[string]*trackerGroup),
@@ -52,6 +50,7 @@ func New() *SuperTracker {
 	return tracker
 }
 
+// AddGauge creates a new gauge on the 'default' group
 func (t *SuperTracker) AddGauge(tracker, printName string, total interface{}) error {
 	t.AddGaugeOn(defGroup, tracker, printName, total)
 	return nil
@@ -65,43 +64,6 @@ func (t *SuperTracker) AddGaugeOn(group, tracker, printName string, total interf
 		return errors.Extend(op, err)
 	}
 	if err := tGroup.addGauge(tracker, printName, total); err != nil {
-		return errors.Extend(op, err)
-	}
-	return nil
-}
-
-// SetLineMode calls SetGroupLineMode using the default group
-func (t *SuperTracker) LineMode(mode string) (err error) {
-	return t.GroupLineMode(defGroup, mode)
-}
-
-// SetGroupLineMode changes a groups line mode to the set value
-func (t *SuperTracker) GroupLineMode(group, mode string) error {
-	op := "tracker.SetGroupLineMode()"
-	tGroup, err := t.findGroup(group)
-	if err != nil {
-		return errors.Extend(op, err)
-	}
-	tGroup.lineMode("mode")
-	return nil
-}
-
-// SetEtaTracker DO THIS
-func (t *SuperTracker) EtaTracker(tracker string) error {
-	if err := t.GroupEtaTracker(defGroup, tracker); err != nil {
-		return err
-	}
-	return nil
-}
-
-// SetGroupEtaTracker DO THIS
-func (t *SuperTracker) GroupEtaTracker(group, tracker string) error {
-	op := "tracker.SetGroupEtaTracker"
-	tGroup, err := t.findGroup(group)
-	if err != nil {
-		return errors.Extend(op, err)
-	}
-	if err := tGroup.etaTracker(tracker); err != nil {
 		return errors.Extend(op, err)
 	}
 	return nil
@@ -142,7 +104,7 @@ func (t *SuperTracker) SetCurr(tracker string, value interface{}) error {
 	return nil
 }
 
-// ResetCurr sets a trackers current value to 0
+// Reset sets a trackers current and total value to 0
 func (t *SuperTracker) Reset(tracker string) error {
 	op := "tracker.ResetCurr()"
 	if err := t.SetCurr(tracker, 0); err != nil {
@@ -174,7 +136,7 @@ func (t *SuperTracker) ChangeTotal(tracker string, value interface{}) error {
 	return nil
 }
 
-// SetTotal sets a trackers value to the one given
+// Total sets a trackers value to the one given
 func (t *SuperTracker) Total(tracker string, value interface{}) error {
 	op := "tracker.SetTotal()"
 	trckr, err := t.findTracker(tracker)
@@ -189,7 +151,7 @@ func (t *SuperTracker) Total(tracker string, value interface{}) error {
 	return nil
 }
 
-// GetValues TODO
+// Values returns the current and total values from the given tracker
 func (t *SuperTracker) Values(tracker string) (current string, total string, err error) {
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
@@ -199,7 +161,7 @@ func (t *SuperTracker) Values(tracker string) (current string, total string, err
 	return trckr.getValues()
 }
 
-// GetRawValues TODO
+// RawValues returns the current and total values from the given tracker
 func (t *SuperTracker) RawValues(tracker string) (current int64, total int64, err error) {
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
@@ -210,7 +172,7 @@ func (t *SuperTracker) RawValues(tracker string) (current int64, total int64, er
 	return
 }
 
-// SetMode TODO
+// Mode change the tracker mode
 func (t *SuperTracker) Mode(tracker, mode string) (err error) {
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
@@ -220,12 +182,12 @@ func (t *SuperTracker) Mode(tracker, mode string) (err error) {
 	return
 }
 
-// SetMode TODO
+// PrintFunc executes the print function for the 'default' group
 func (t *SuperTracker) PrintFunc(f func()) error {
 	return t.GroupPrintFunc(defGroup, f)
 }
 
-// GroupPrintFunc
+// GroupPrintFunc executes the print function for the given group
 func (t *SuperTracker) GroupPrintFunc(group string, f func()) error {
 	tGroup, err := t.findGroup(group)
 	if err != nil {
@@ -249,22 +211,22 @@ func (t *SuperTracker) PrintGroup(group string) {
 	tGroup.print()
 }
 
-// Status TODO
+// Status changes the 'default' group's status
 func (t *SuperTracker) Status(group, task string) error {
 	return t.GroupStatus(defGroup, task)
 }
 
-// GroupStatus TODO
+// GroupStatus changes the given group's status
 func (t *SuperTracker) GroupStatus(group, task string) error {
 	tGroup, err := t.findGroup(group)
 	if err != nil {
 		return errors.Extend("tracker.PrintGroup()", err)
 	}
-	tGroup.status(task)
+	tGroup.setStatus(task)
 	return nil
 }
 
-// StartMeasure TODO
+// StartMeasure starts a parameter measuring, returning a function that ends the measure
 func (t *SuperTracker) StartMeasure(tracker string) (func(), error) {
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
@@ -274,7 +236,7 @@ func (t *SuperTracker) StartMeasure(tracker string) (func(), error) {
 	return endMeasure, nil
 }
 
-// ProgressRate TODO
+// ProgressRate returns the measures average rate without applying the units modifier function
 func (t *SuperTracker) ProgressRate(tracker string) (string, error) {
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
@@ -283,7 +245,7 @@ func (t *SuperTracker) ProgressRate(tracker string) (string, error) {
 	return trckr.getRate(), nil
 }
 
-// TrueProgressRate TODO
+// TrueProgressRate returns the measure average rate applying the units modifier function
 func (t *SuperTracker) TrueProgressRate(tracker string) (string, error) {
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
@@ -293,7 +255,8 @@ func (t *SuperTracker) TrueProgressRate(tracker string) (string, error) {
 	return trckr.getRate(), nil
 }
 
-// UnitsFunc TODO
+// UnitsFunc sets the given function to be used to modify the tracked units into a human
+// readable form
 func (t *SuperTracker) UnitsFunc(tracker string, f func(int64) string) error {
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
@@ -303,7 +266,7 @@ func (t *SuperTracker) UnitsFunc(tracker string, f func(int64) string) error {
 	return nil
 }
 
-// InitSpdRate TODO
+// InitSpdRate TODO STILL THINKING IF having to initialize this separately is a good idea.
 func (t *SuperTracker) InitSpdRate(tracker string, n int) error {
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
@@ -313,8 +276,9 @@ func (t *SuperTracker) InitSpdRate(tracker string, n int) error {
 	return nil
 }
 
-// StartAutoMeasure TODO
-func (t *SuperTracker) StartAutoMeasure(tracker string, tick int) error {
+// StartAutoMeasure starts the automeasuring process. The process will take measures for each
+// time.Duration given for the given tracker. TODO automeasure still uses old way to count time
+func (t *SuperTracker) StartAutoMeasure(tracker string, tick time.Duration) error {
 	op := "tracker.StartAutoMeasure()"
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
@@ -328,7 +292,7 @@ func (t *SuperTracker) StartAutoMeasure(tracker string, tick int) error {
 
 }
 
-// StopAutoMeasure TODO
+// StopAutoMeasure stops the automeasuring process for the given tracker
 func (t *SuperTracker) StopAutoMeasure(tracker string) error {
 	op := "tracker.StartAutoMeasure()"
 	trckr, err := t.findTracker(tracker)
@@ -343,13 +307,13 @@ func (t *SuperTracker) StopAutoMeasure(tracker string) error {
 
 }
 
-// StartAutoPrint TODO
+// StartAutoPrint starts the autoprint process for the 'default' group
 func (t *SuperTracker) StartAutoPrint(d time.Duration) (err error) {
 	err = t.StartGroupAutoPrint(defGroup, d)
 	return
 }
 
-// StartGroupAutoPrint TODO
+// StartGroupAutoPrint starts the autoprint process for the given group
 func (t *SuperTracker) StartGroupAutoPrint(group string, d time.Duration) error {
 	tGroup, err := t.findGroup(group)
 	if err != nil {
@@ -359,13 +323,13 @@ func (t *SuperTracker) StartGroupAutoPrint(group string, d time.Duration) error 
 	return nil
 }
 
-// StopAutoPrint TODO
+// StopAutoPrint stops the autoprint process for the 'default' group
 func (t *SuperTracker) StopAutoPrint() (err error) {
 	err = t.StopGroupAutoPrint(defGroup)
 	return
 }
 
-// StopGroupAutoPrint TODO
+// StopGroupAutoPrint stops the autoprint process for the given group
 func (t *SuperTracker) StopGroupAutoPrint(group string) error {
 	tGroup, err := t.findGroup(group)
 	if err != nil {
@@ -375,13 +339,15 @@ func (t *SuperTracker) StopGroupAutoPrint(group string) error {
 	return nil
 }
 
-// RestartAutoPrint TODO
+// RestartAutoPrint delays the auto-printing for the 'default' group. Also restart's it
+// if it was stopped
 func (t *SuperTracker) RestartAutoPrint() (err error) {
 	err = t.RestartGroupAutoPrint(defGroup)
 	return
 }
 
-// RestartGroupAutoPrint TODO
+// RestartGroupAutoPrint delays the auto-printing for the given group. Also restart's it
+// if it was stopped
 func (t *SuperTracker) RestartGroupAutoPrint(group string) error {
 	tGroup, err := t.findGroup(group)
 	if err != nil {
