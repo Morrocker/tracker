@@ -139,7 +139,9 @@ func (g *gauge) startAutoMeasure(d time.Duration) error {
 	go func() {
 		select {
 		case <-g.ticker.C:
-			g.print()
+			end := g.spdMeasureStart()
+			time.Sleep(g.ticksLapse)
+			end()
 		}
 	}()
 	return nil
