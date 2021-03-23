@@ -91,9 +91,11 @@ func (g *trackerGroup) startAutoPrint(d time.Duration) {
 	g.ticker = time.NewTicker(d)
 
 	go func() {
-		select {
-		case <-g.ticker.C:
-			g.print()
+		for {
+			select {
+			case <-g.ticker.C:
+				g.print()
+			}
 		}
 	}()
 }
