@@ -7,6 +7,7 @@ import (
 
 	"github.com/morrocker/benchmark"
 	"github.com/morrocker/errors"
+	"github.com/morrocker/log"
 )
 
 type gauge struct {
@@ -140,6 +141,7 @@ func (g *gauge) startAutoMeasure(d time.Duration) error {
 		for {
 			select {
 			case <-g.ticker.C:
+				log.Info("Automeasure Running...")
 				end := g.spdMeasureStart()
 				time.Sleep(g.ticksLapse)
 				end()
