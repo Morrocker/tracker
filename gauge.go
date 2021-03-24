@@ -7,7 +7,6 @@ import (
 
 	"github.com/morrocker/benchmark"
 	"github.com/morrocker/errors"
-	"github.com/morrocker/log"
 )
 
 type gauge struct {
@@ -141,7 +140,6 @@ func (g *gauge) startAutoMeasure(d time.Duration) error {
 		for {
 			select {
 			case <-g.ticker.C:
-				log.Info("Automeasure Running...")
 				end := g.spdMeasureStart()
 				time.Sleep(g.ticksLapse)
 				end()
@@ -166,40 +164,6 @@ func (g *gauge) restartTicker() error {
 	}
 	g.ticker.Reset(g.ticksLapse)
 	return nil
-}
-
-func (g *gauge) print() (format string) {
-	g.lock.Lock()
-	defer g.lock.Unlock()
-
-	switch g.mode {
-	case "countdown":
-		diff := (g.total - g.current)
-		format = fmt.Sprintf("%s: %d remaining", g.name, diff)
-	case "division":
-		if g.unitFunc != nil {
-			format = fmt.Sprintf("%s: %s/%s", g.name, g.unitFunc(g.current), g.unitFunc(g.total))
-			return
-		}
-		format = fmt.Sprintf("%s: %d/%d", g.name, g.current, g.total)
-	case "percentageDone":
-		per := g.current * 100 / g.total
-		format = fmt.Sprintf("%s: %d %% done", g.name, per)
-	case "percentageRemaining":
-		per := (g.total - g.current) * 100 / g.total
-		format = fmt.Sprintf("%s: %d %% remaining", g.name, per)
-	case "countPercentage":
-		per := g.current * 100 / g.total
-		format = fmt.Sprintf("%s: %d %% remaining", g.name, per)
-	case "divisionPercentage":
-		per := g.current * 100 / g.total
-		if g.unitFunc != nil {
-			format = fmt.Sprintf("%s: %s/%s ( %d %% remaining )", g.name, g.unitFunc(g.current), g.unitFunc(g.total), per)
-			return
-		}
-		format = fmt.Sprintf("%s: %d/%d ( %d %% remaining )", g.name, g.current, g.total, per)
-	}
-	return
 }
 
 func (g *gauge) checkTicker() error {

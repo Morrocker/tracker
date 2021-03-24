@@ -30,7 +30,6 @@ type tracker interface {
 	changeTotal(int64)
 	getRawValues() (int64, int64)
 	getValues() (string, string, error)
-	print() string
 	spdMeasureStart() func()
 	setUnitsFunc(func(int64) string)
 	getRawRate() int64
