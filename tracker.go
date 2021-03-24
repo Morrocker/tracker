@@ -376,3 +376,13 @@ func (t *SuperTracker) findTracker(tName string) (tracker, error) {
 	}
 	return tracker, errors.New("tracker.findTracker()", fmt.Sprintf("tracker %s was not found", tName))
 }
+
+// ETA asdf
+func (t *SuperTracker) ETA(tracker string) (string, error) {
+	trckr, err := t.findTracker(tracker)
+	if err != nil {
+		return "", errors.Extend("tracker.ETA()", err)
+	}
+	endMeasure := trckr.getETA()
+	return endMeasure, nil
+}
