@@ -71,11 +71,6 @@ func (g *gauge) setMode(mode string) {
 	defer g.lock.Unlock()
 	g.mode = mode
 }
-func (g *gauge) getMode() string {
-	g.lock.Lock()
-	defer g.lock.Unlock()
-	return g.mode
-}
 func (g *gauge) getRawValues() (int64, int64) {
 	g.lock.Lock()
 	defer g.lock.Unlock()
@@ -143,7 +138,10 @@ func (g *gauge) startAutoMeasure(d time.Duration) error {
 				end := g.spdMeasureStart()
 				time.Sleep(g.ticksLapse)
 				end()
-				g.speedRate.AvgRate()
+				// time.Sleep(500 * time.Millisecond)
+				// r := g.speedRate.AvgRate() // THIS SHOULDNT BE HERE AT ALL
+				// r := g.speedRate.Debug()   // THIS SHOULDNT BE HERE AT ALL
+				// Logger.Bench("Start: %d | End: %d | Rate: %d | RateTot: %d / SampleSize: %d")
 			}
 		}
 	}()
