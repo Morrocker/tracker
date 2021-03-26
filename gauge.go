@@ -138,10 +138,6 @@ func (g *gauge) startAutoMeasure(d time.Duration) error {
 				end := g.spdMeasureStart()
 				time.Sleep(g.ticksLapse)
 				end()
-				// time.Sleep(500 * time.Millisecond)
-				// r := g.speedRate.AvgRate() // THIS SHOULDNT BE HERE AT ALL
-				// r := g.speedRate.Debug()   // THIS SHOULDNT BE HERE AT ALL
-				// Logger.Bench("Start: %d | End: %d | Rate: %d | RateTot: %d / SampleSize: %d")
 			}
 		}
 	}()
