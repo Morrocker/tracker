@@ -47,15 +47,9 @@ func New() *SuperTracker {
 }
 
 // AddGauge creates a new gauge on the 'default' group
-func (t *SuperTracker) AddGauge(tracker, printName string, total interface{}) error {
-	t.AddGaugeOn(defGroup, tracker, printName, total)
-	return nil
-}
-
-// AddGaugeOn creates and adds a gauge type tracker to a tracker group.
-func (t *SuperTracker) AddGaugeOn(group, tracker, printName string, total interface{}) error {
-	op := "tracker.AddGaugeOn()"
-	tGroup, err := t.findGroup(group)
+func (t *SuperTracker) AddGauge(tracker, printName string, total interface{}, group ...string) error {
+	op := "tracker.AddGauge()"
+	tGroup, err := t.findGroup(group[0])
 	if err != nil {
 		return errors.Extend(op, err)
 	}
@@ -80,13 +74,8 @@ func (t *SuperTracker) ChangeCurr(tracker string, value interface{}) (err error)
 	return
 }
 
-// IncreaseCurr increases a trackers current value by 1
-func (t *SuperTracker) IncreaseCurr(tracker string) error {
-	return t.ChangeCurr(tracker, 1)
-}
-
 // SetCurr sets a trackers current value to the one given
-func (t *SuperTracker) SetCurr(tracker string, value interface{}) error {
+func (t *SuperTracker) Curr(tracker string, value interface{}) error {
 	op := "tracker.IncreaseCurr()"
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
@@ -103,18 +92,13 @@ func (t *SuperTracker) SetCurr(tracker string, value interface{}) error {
 // Reset sets a trackers current and total value to 0
 func (t *SuperTracker) Reset(tracker string) error {
 	op := "tracker.ResetCurr()"
-	if err := t.SetCurr(tracker, 0); err != nil {
+	if err := t.Curr(tracker, 0); err != nil {
 		return errors.New(op, err)
 	}
 	if err := t.Total(tracker, 0); err != nil {
 		return errors.New(op, err)
 	}
 	return nil
-}
-
-// ResetCurr sets a trackers current value to 0
-func (t *SuperTracker) ResetCurr(tracker string) (err error) {
-	return t.SetCurr(tracker, 0)
 }
 
 // ChangeTotal changes a trackers total value by the given amount
@@ -169,13 +153,8 @@ func (t *SuperTracker) RawValues(tracker string) (current int64, total int64, er
 }
 
 // PrintFunc executes the print function for the 'default' group
-func (t *SuperTracker) PrintFunc(f func()) error {
-	return t.GroupPrintFunc(defGroup, f)
-}
-
-// GroupPrintFunc executes the print function for the given group
-func (t *SuperTracker) GroupPrintFunc(group string, f func()) error {
-	tGroup, err := t.findGroup(group)
+func (t *SuperTracker) PrintFunc(f func(), group ...string) error {
+	tGroup, err := t.findGroup(group...)
 	if err != nil {
 		log.Errorln(errors.Extend("tracker.SetGroupPrintFunc()", err))
 	}
@@ -183,13 +162,8 @@ func (t *SuperTracker) GroupPrintFunc(group string, f func()) error {
 	return nil
 }
 
-// Print prints progress of all visible trackers
-func (t *SuperTracker) Print() {
-	t.PrintGroup(defGroup)
-}
-
 // PrintGroup prints progress of all visible trackers
-func (t *SuperTracker) PrintGroup(group string) {
+func (t *SuperTracker) Print(group string) {
 	tGroup, err := t.findGroup(group)
 	if err != nil {
 		log.Errorln(errors.Extend("tracker.PrintGroup()", err))
@@ -198,13 +172,8 @@ func (t *SuperTracker) PrintGroup(group string) {
 }
 
 // Status changes the 'default' group's status
-func (t *SuperTracker) Status(group, task string) error {
-	return t.GroupStatus(defGroup, task)
-}
-
-// GroupStatus changes the given group's status
-func (t *SuperTracker) GroupStatus(group, task string) error {
-	tGroup, err := t.findGroup(group)
+func (t *SuperTracker) Status(task string, group ...string) error {
+	tGroup, err := t.findGroup(group[0])
 	if err != nil {
 		return errors.Extend("tracker.PrintGroup()", err)
 	}
@@ -293,15 +262,9 @@ func (t *SuperTracker) StopAutoMeasure(tracker string) error {
 
 }
 
-// StartAutoPrint starts the autoprint process for the 'default' group
-func (t *SuperTracker) StartAutoPrint(d time.Duration) (err error) {
-	err = t.StartGroupAutoPrint(defGroup, d)
-	return
-}
-
 // StartGroupAutoPrint starts the autoprint process for the given group
-func (t *SuperTracker) StartGroupAutoPrint(group string, d time.Duration) error {
-	tGroup, err := t.findGroup(group)
+func (t *SuperTracker) StartAutoPrint(d time.Duration, group ...string) error {
+	tGroup, err := t.findGroup(group...)
 	if err != nil {
 		log.Errorln(errors.Extend("tracker.StartAutoPrintGroup()", err))
 	}
@@ -309,15 +272,9 @@ func (t *SuperTracker) StartGroupAutoPrint(group string, d time.Duration) error 
 	return nil
 }
 
-// StopAutoPrint stops the autoprint process for the 'default' group
-func (t *SuperTracker) StopAutoPrint() (err error) {
-	err = t.StopGroupAutoPrint(defGroup)
-	return
-}
-
 // StopGroupAutoPrint stops the autoprint process for the given group
-func (t *SuperTracker) StopGroupAutoPrint(group string) error {
-	tGroup, err := t.findGroup(group)
+func (t *SuperTracker) StopAutoPrint(group ...string) error {
+	tGroup, err := t.findGroup(group...)
 	if err != nil {
 		log.Errorln(errors.Extend("tracker.StopAutoPrintGroup()", err))
 	}
@@ -325,17 +282,10 @@ func (t *SuperTracker) StopGroupAutoPrint(group string) error {
 	return nil
 }
 
-// RestartAutoPrint delays the auto-printing for the 'default' group. Also restart's it
-// if it was stopped
-func (t *SuperTracker) RestartAutoPrint() (err error) {
-	err = t.RestartGroupAutoPrint(defGroup)
-	return
-}
-
 // RestartGroupAutoPrint delays the auto-printing for the given group. Also restart's it
 // if it was stopped
-func (t *SuperTracker) RestartGroupAutoPrint(group string) error {
-	tGroup, err := t.findGroup(group)
+func (t *SuperTracker) RestartGroupAutoPrint(group ...string) error {
+	tGroup, err := t.findGroup(group...)
 	if err != nil {
 		log.Errorln(errors.Extend("tracker.RestartAutoPrintGroup()", err))
 	}
@@ -344,12 +294,17 @@ func (t *SuperTracker) RestartGroupAutoPrint(group string) error {
 }
 
 // findGroup takes a trackerGroup name and, if found, returns the object
-func (t *SuperTracker) findGroup(name string) (*trackerGroup, error) {
-	group, ok := t.trackerGroups[name]
-	if !ok {
-		return nil, errors.New("tracker.findGroup", "Couldn't find group "+name)
+func (t *SuperTracker) findGroup(group ...string) (*trackerGroup, error) {
+	if len(group) == 0 {
+		group = append(group, "default")
+	} else if len(group) > 1 {
+		return nil, errors.New("tracker.findGroup", "AddGauge can only have 0 or 1 value")
 	}
-	return group, nil
+	tGroup, ok := t.trackerGroups[group[0]]
+	if !ok {
+		return nil, errors.New("tracker.findGroup", "Couldn't find group "+group[0])
+	}
+	return tGroup, nil
 }
 
 // findTracker takes a tracker name and, if found, returns the object
