@@ -10,27 +10,15 @@ import (
 )
 
 type gauge struct {
-	name        string
-	current     int64
-	total       int64
-	show        bool
-	mode        string
-	order       int
-	autoMeasure bool
-	ticksLapse  time.Duration
-	ticker      *time.Ticker
-	lock        *sync.Mutex
-	speedRate   *benchmark.SRate
-	unitFunc    func(int64) string
-}
-
-var modes = []string{
-	"countdown",
-	"division",
-	"percentageDone",
-	"percentageRemaining",
-	"countPercentage",
-	"divisionPercentage",
+	name       string
+	current    int64
+	total      int64
+	st         int
+	ticksLapse time.Duration
+	ticker     *time.Ticker
+	lock       *sync.Mutex
+	speedRate  *benchmark.SRate
+	unitFunc   func(int64) string
 }
 
 func newGauge(name string, total int64) *gauge {
@@ -39,8 +27,6 @@ func newGauge(name string, total int64) *gauge {
 		name:    name,
 		current: 0,
 		total:   total,
-		show:    defVis,
-		mode:    defGaugeMode,
 		lock:    &lock,
 	}
 	return newgauge
@@ -65,11 +51,6 @@ func (g *gauge) changeTotal(n int64) {
 	g.lock.Lock()
 	defer g.lock.Unlock()
 	g.total += n
-}
-func (g *gauge) setMode(mode string) {
-	g.lock.Lock()
-	defer g.lock.Unlock()
-	g.mode = mode
 }
 func (g *gauge) getRawValues() (int64, int64) {
 	g.lock.Lock()
@@ -132,13 +113,10 @@ func (g *gauge) startAutoMeasure(d time.Duration) error {
 	g.ticker = time.NewTicker(d)
 
 	go func() {
-		for {
-			select {
-			case <-g.ticker.C:
-				end := g.spdMeasureStart()
-				time.Sleep(g.ticksLapse)
-				end()
-			}
+		for range g.ticker.C {
+			end := g.spdMeasureStart()
+			time.Sleep(g.ticksLapse)
+			end()
 		}
 	}()
 	return nil
@@ -165,4 +143,14 @@ func (g *gauge) checkTicker() error {
 		return errors.New("gauge.checkTicker()", "Ticker hasn't been set")
 	}
 	return nil
+}
+
+func (g *gauge) state(state ...int) (int, error) {
+	if len(state) == 0 {
+		return g.st, nil
+	} else if len(state) != 1 {
+		return 0, errors.New("gauge.state()", "state can only receive 0 or 1 value")
+	}
+	g.st = state[0]
+	return g.st, nil
 }

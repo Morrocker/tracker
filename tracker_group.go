@@ -10,12 +10,8 @@ import (
 
 type trackerGroup struct {
 	trackers   map[string]tracker
-	order      []string
-	etaTrckr   string
-	delayPrint bool
 	ticksLapse time.Duration
 	status     string
-	autoPrint  bool
 	ticker     *time.Ticker
 	prntFunc   func()
 }
@@ -53,20 +49,6 @@ func (g *trackerGroup) findTracker(t string) (tracker, error) {
 	return tracker, err
 }
 
-func (g *trackerGroup) changeCurr(tracker string, value interface{}) error {
-	op := "tracker_group.SetEtaTracker()"
-	Tracker, err := g.findTracker(tracker)
-	if err != nil {
-		return errors.Extend(op, err)
-	}
-	val64, err := getInt64(value)
-	if err != nil {
-		return errors.Extend(op, err)
-	}
-	Tracker.changeCurrent(val64)
-	return nil
-}
-
 func (g *trackerGroup) printFunc(f func()) {
 	g.prntFunc = f
 }
@@ -91,11 +73,8 @@ func (g *trackerGroup) startAutoPrint(d time.Duration) {
 	g.ticker = time.NewTicker(d)
 
 	go func() {
-		for {
-			select {
-			case <-g.ticker.C:
-				g.print()
-			}
+		for range g.ticker.C {
+			g.print()
 		}
 	}()
 }

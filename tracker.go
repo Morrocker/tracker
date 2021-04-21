@@ -9,12 +9,9 @@ import (
 )
 
 const (
-	defSeparator = "|"
-	defLapse     = 6000 * time.Millisecond
-	defLineMode  = "singleline"
-	defGaugeMode = "division"
-	defGroup     = "default"
-	defVis       = true
+	defLapse = 6000 * time.Millisecond
+	defGroup = "default"
+	defVis   = true
 )
 
 // SuperTracker base structure that houses all tracks to monitor task progress
@@ -23,7 +20,6 @@ type SuperTracker struct {
 }
 
 type tracker interface {
-	setMode(string)
 	setCurrent(int64)
 	setTotal(int64)
 	changeCurrent(int64)
@@ -38,6 +34,7 @@ type tracker interface {
 	initSpdRate(int)
 	startAutoMeasure(time.Duration) error
 	stopAutoMeasure() error
+	state(...int) (int, error)
 }
 
 // New creates a new SuperTracker. The 'default' group is created with it.
@@ -168,16 +165,6 @@ func (t *SuperTracker) RawValues(tracker string) (current int64, total int64, er
 		return
 	}
 	current, total = trckr.getRawValues()
-	return
-}
-
-// Mode change the tracker mode
-func (t *SuperTracker) Mode(tracker, mode string) (err error) {
-	trckr, err := t.findTracker(tracker)
-	if err != nil {
-		return errors.Extend("tracker.SetMode()", err)
-	}
-	trckr.setMode(mode)
 	return
 }
 
@@ -384,4 +371,13 @@ func (t *SuperTracker) ETA(tracker string) (string, error) {
 	}
 	endMeasure := trckr.getETA()
 	return endMeasure, nil
+}
+
+func (t *SuperTracker) State(tracker string, state ...int) (int, error) {
+	trckr, err := t.findTracker(tracker)
+	if err != nil {
+		return 0, errors.Extend("tracker.State()", err)
+	}
+	r, err := trckr.state(state...)
+	return r, err
 }
