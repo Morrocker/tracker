@@ -24,6 +24,7 @@ type tracker interface {
 	setTotal(int64)
 	changeCurrent(int64)
 	changeTotal(int64)
+	changeAndReturn(int64, int64) (int64, int64)
 	getRawValues() (int64, int64)
 	getValues() (string, string, error)
 	spdMeasureStart() func()
@@ -34,7 +35,6 @@ type tracker interface {
 	initSpdRate(int)
 	startAutoMeasure(time.Duration) error
 	stopAutoMeasure() error
-	state(...int) (int, error)
 }
 
 // New creates a new SuperTracker. The 'default' group is created with it.
@@ -86,6 +86,25 @@ func (t *SuperTracker) Curr(tracker string, value interface{}) error {
 		return errors.Extend(op, err)
 	}
 	trckr.setCurrent(val64)
+	return nil
+}
+
+func (t *SuperTracker) ChangeAndReturn(tracker string, values ...interface{}) error {
+	op := "tracker.ChangeAndReturn()"
+	trckr, err := t.findTracker(tracker)
+	if err != nil {
+		return errors.Extend(op, err)
+	}
+
+	curr, err := getInt64(values[0])
+	if err != nil {
+		return errors.Extend(op, err)
+	}
+	tot, err := getInt64(values[1])
+	if err != nil {
+		return errors.Extend(op, err)
+	}
+	trckr.changeAndReturn(curr, tot)
 	return nil
 }
 
@@ -326,13 +345,4 @@ func (t *SuperTracker) ETA(tracker string) (string, error) {
 	}
 	endMeasure := trckr.getETA()
 	return endMeasure, nil
-}
-
-func (t *SuperTracker) State(tracker string, state ...int) (int, error) {
-	trckr, err := t.findTracker(tracker)
-	if err != nil {
-		return 0, errors.Extend("tracker.State()", err)
-	}
-	r, err := trckr.state(state...)
-	return r, err
 }

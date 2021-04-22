@@ -3,6 +3,7 @@ package tracker
 import (
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/morrocker/benchmark"
@@ -13,7 +14,6 @@ type gauge struct {
 	name       string
 	current    int64
 	total      int64
-	st         int
 	ticksLapse time.Duration
 	ticker     *time.Ticker
 	lock       *sync.Mutex
@@ -33,33 +33,34 @@ func newGauge(name string, total int64) *gauge {
 }
 
 func (g *gauge) setCurrent(n int64) {
-	g.lock.Lock()
-	defer g.lock.Unlock()
 	g.current = n
 }
 func (g *gauge) changeCurrent(n int64) {
 	g.lock.Lock()
-	defer g.lock.Unlock()
-	g.current += n
+	atomic.AddInt64(&g.current, n)
+	g.lock.Unlock()
 }
 func (g *gauge) setTotal(n int64) {
-	g.lock.Lock()
-	defer g.lock.Unlock()
 	g.total = n
 }
 func (g *gauge) changeTotal(n int64) {
 	g.lock.Lock()
-	defer g.lock.Unlock()
-	g.total += n
+	atomic.AddInt64(&g.total, n)
+	g.lock.Unlock()
 }
-func (g *gauge) getRawValues() (int64, int64) {
+
+func (g *gauge) changeAndReturn(cur, tot int64) (int64, int64) {
 	g.lock.Lock()
 	defer g.lock.Unlock()
+	newCurr := atomic.AddInt64(&g.current, cur)
+	newTot := atomic.AddInt64(&g.total, tot)
+	return newCurr, newTot
+}
+
+func (g *gauge) getRawValues() (int64, int64) {
 	return g.current, g.total
 }
 func (g *gauge) getValues() (string, string, error) {
-	g.lock.Lock()
-	defer g.lock.Unlock()
 	if g.unitFunc == nil {
 		return "", "", errors.New("gauge.getValues()", "unitsFunction not set")
 	}
@@ -143,14 +144,4 @@ func (g *gauge) checkTicker() error {
 		return errors.New("gauge.checkTicker()", "Ticker hasn't been set")
 	}
 	return nil
-}
-
-func (g *gauge) state(state ...int) (int, error) {
-	if len(state) == 0 {
-		return g.st, nil
-	} else if len(state) != 1 {
-		return 0, errors.New("gauge.state()", "state can only receive 0 or 1 value")
-	}
-	g.st = state[0]
-	return g.st, nil
 }
