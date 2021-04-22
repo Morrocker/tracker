@@ -192,7 +192,7 @@ func (t *SuperTracker) Print(group string) {
 
 // Status changes the 'default' group's status
 func (t *SuperTracker) Status(task string, group ...string) error {
-	tGroup, err := t.findGroup(group[0])
+	tGroup, err := t.findGroup(group...)
 	if err != nil {
 		return errors.Extend("tracker.PrintGroup()", err)
 	}
