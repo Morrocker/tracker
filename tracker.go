@@ -89,23 +89,23 @@ func (t *SuperTracker) Curr(tracker string, value interface{}) error {
 	return nil
 }
 
-func (t *SuperTracker) ChangeAndReturn(tracker string, values ...interface{}) error {
+func (t *SuperTracker) ChangeAndReturn(tracker string, values ...interface{}) (int64, int64, error) {
 	op := "tracker.ChangeAndReturn()"
 	trckr, err := t.findTracker(tracker)
 	if err != nil {
-		return errors.Extend(op, err)
+		return 0, 0, errors.Extend(op, err)
 	}
 
 	curr, err := getInt64(values[0])
 	if err != nil {
-		return errors.Extend(op, err)
+		return 0, 0, errors.Extend(op, err)
 	}
 	tot, err := getInt64(values[1])
 	if err != nil {
-		return errors.Extend(op, err)
+		return 0, 0, errors.Extend(op, err)
 	}
-	trckr.changeAndReturn(curr, tot)
-	return nil
+	newCurr, newTot := trckr.changeAndReturn(curr, tot)
+	return newCurr, newTot, nil
 }
 
 // Reset sets a trackers current and total value to 0
