@@ -47,13 +47,13 @@ func New() *SuperTracker {
 }
 
 // AddGauge creates a new gauge on the 'default' group
-func (t *SuperTracker) AddGauge(tracker, printName string, total interface{}, group ...string) error {
+func (t *SuperTracker) AddGauge(tracker string, total interface{}, group ...string) error {
 	op := "tracker.AddGauge()"
 	tGroup, err := t.findGroup(group...)
 	if err != nil {
 		return errors.Extend(op, err)
 	}
-	if err := tGroup.addGauge(tracker, printName, total); err != nil {
+	if err := tGroup.addGauge(tracker, total); err != nil {
 		return errors.Extend(op, err)
 	}
 	return nil

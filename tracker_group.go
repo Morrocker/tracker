@@ -25,7 +25,7 @@ func newGroup(name string) *trackerGroup {
 }
 
 // AddGauge call AddGaugeOn using the default group
-func (g *trackerGroup) addGauge(trackerName, printName string, total interface{}) error {
+func (g *trackerGroup) addGauge(trackerName string, total interface{}) error {
 	op := "tracker_group.addGauge()"
 	if _, err := g.findTracker(trackerName); err == nil {
 		return errors.New(op, fmt.Sprintf("tracker name %s already taken", trackerName))
