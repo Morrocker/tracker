@@ -1,147 +1,60 @@
 package tracker
 
 import (
-	"fmt"
-	"sync"
 	"sync/atomic"
-	"time"
-
-	"github.com/morrocker/benchmark"
-	"github.com/morrocker/errors"
 )
 
-type gauge struct {
-	name       string
-	current    int64
-	total      int64
-	ticksLapse time.Duration
-	ticker     *time.Ticker
-	lock       *sync.Mutex
-	speedRate  *benchmark.SRate
-	unitFunc   func(int64) string
+type Gauge interface {
+	SetCurrent(n int64)
+	Current(n int64) int64
+	SetTotal(n int64)
+	Total(n int64) int64
+	RawValues() (int64, int64)
+	Values() (string, string)
+	UnitsFunc(func(int64) string)
 }
 
-func newGauge(name string, total int64) *gauge {
-	var lock sync.Mutex
-	newgauge := &gauge{
+type gauge struct {
+	name     string
+	current  int64
+	total    int64
+	unitFunc func(int64) string
+}
+
+func newGauge(name string, total int64) Gauge {
+	newGauge := &gauge{
 		name:    name,
 		current: 0,
 		total:   total,
-		lock:    &lock,
 	}
-	return newgauge
+	return newGauge
 }
 
-func (g *gauge) setCurrent(n int64) {
-	g.current = n
+func (g *gauge) SetCurrent(n int64) {
+	atomic.CompareAndSwapInt64(&g.current, g.current, n)
 }
-func (g *gauge) changeCurrent(n int64) {
-	g.lock.Lock()
+func (g *gauge) Current(n int64) int64 {
 	atomic.AddInt64(&g.current, n)
-	g.lock.Unlock()
+	return g.current
 }
-func (g *gauge) setTotal(n int64) {
-	g.total = n
+func (g *gauge) SetTotal(n int64) {
+	atomic.CompareAndSwapInt64(&g.total, g.total, n)
 }
-func (g *gauge) changeTotal(n int64) {
-	g.lock.Lock()
+func (g *gauge) Total(n int64) int64 {
 	atomic.AddInt64(&g.total, n)
-	g.lock.Unlock()
+	return g.total
 }
 
-func (g *gauge) changeAndReturn(cur, tot int64) (int64, int64) {
-	g.lock.Lock()
-	defer g.lock.Unlock()
-	newCurr := atomic.AddInt64(&g.current, cur)
-	newTot := atomic.AddInt64(&g.total, tot)
-	return newCurr, newTot
-}
-
-func (g *gauge) getRawValues() (int64, int64) {
+func (g *gauge) RawValues() (int64, int64) {
 	return g.current, g.total
 }
-func (g *gauge) getValues() (string, string, error) {
+func (g *gauge) Values() (string, string) {
 	if g.unitFunc == nil {
-		return "", "", errors.New("gauge.getValues()", "unitsFunction not set")
+		return "unitsFunction not set", "unitsFunction not set"
 	}
-	return g.unitFunc(g.current), g.unitFunc(g.total), nil
+	return g.unitFunc(g.current), g.unitFunc(g.total)
 }
 
-func (g *gauge) spdMeasureStart() func() {
-	end := g.speedRate.MeasureStart(g.current)
-	return func() {
-		end(g.current)
-	}
-}
-
-func (g *gauge) getRawRate() int64 {
-	return g.speedRate.AvgRate()
-}
-
-func (g *gauge) setUnitsFunc(f func(int64) string) {
+func (g *gauge) UnitsFunc(f func(int64) string) {
 	g.unitFunc = f
-}
-
-func (g *gauge) getRate() string {
-	if g.unitFunc != nil {
-		return g.unitFunc(g.speedRate.AvgRate())
-	}
-	return fmt.Sprintf("%d UntypedUnit", g.speedRate.AvgRate())
-}
-
-func (g *gauge) getETA() string {
-	if x := g.speedRate.AvgRate(); x != 0 {
-		eta := (g.total - g.current) / x
-		return time.Duration(eta * 1000000000).String()
-	}
-	return "not available"
-}
-
-func (g *gauge) initSpdRate(n int) {
-	spd := benchmark.NewSRate(n)
-	g.speedRate = spd
-}
-
-func (g *gauge) startAutoMeasure(d time.Duration) error {
-	op := "tracker.startAutoMeasure()"
-	if g.speedRate == nil {
-		return errors.New(op, "speedRate variable not set")
-	}
-	if err := g.checkTicker(); err != nil {
-		g.restartTicker()
-	}
-	g.ticksLapse = d
-	g.ticker = time.NewTicker(d)
-
-	go func() {
-		for range g.ticker.C {
-			end := g.spdMeasureStart()
-			time.Sleep(g.ticksLapse)
-			end()
-		}
-	}()
-	return nil
-}
-
-func (g *gauge) stopAutoMeasure() error {
-	if err := g.checkTicker(); err != nil {
-		return errors.Extend("gauge.stopAutoMeasure()", err)
-	}
-	g.ticker.Stop()
-	return nil
-}
-
-func (g *gauge) restartTicker() error {
-	if g.ticker == nil {
-		return errors.New("tracker_group.resetTicker()", "Ticker hasn't been set")
-	}
-	g.ticker.Reset(g.ticksLapse)
-	return nil
-}
-
-func (g *gauge) checkTicker() error {
-	if g.ticker == nil {
-		return errors.New("gauge.checkTicker()", "Ticker hasn't been set")
-	}
-	return nil
 }

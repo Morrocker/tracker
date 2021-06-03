@@ -1,10 +1,8 @@
-module github.com/morrocker/progress-tracker
+module github.com/morrocker/tracker
 
 go 1.16
 
 require (
-	github.com/fatih/color v1.10.0 // indirect
-	github.com/morrocker/benchmark v0.0.0-20210326150553-f72660cf55b3
+	github.com/morrocker/benchmark v0.0.0-20210602154631-cf85face0369
 	github.com/morrocker/errors v0.0.0-20210323144609-d8629b6d420a
-	github.com/morrocker/log v0.0.0-20210322121956-1387843cccea
 )
