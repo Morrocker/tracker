@@ -24,7 +24,7 @@ type speed struct {
 	unitsFunc func(int64) string
 }
 
-func newSpeed(g *int64, n int) Speed {
+func NewSpeed(g *int64, n int) Speed {
 	newSpeed := &speed{
 		target: g,
 		rate:   benchmark.NewSingleRate(n),

@@ -21,7 +21,7 @@ type gauge struct {
 	unitFunc func(int64) string
 }
 
-func newGauge(name string, total int64) Gauge {
+func NewGauge(name string, total int64) Gauge {
 	newGauge := &gauge{
 		name:    name,
 		current: 0,
