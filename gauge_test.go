@@ -35,9 +35,8 @@ func TestNewGauge(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewGauge(tt.args.name, tt.args.total); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewCounter() = %v, want %v", got, tt.want)
-			}
+			got := NewGauge(tt.args.name, tt.args.total)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

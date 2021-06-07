@@ -7,7 +7,7 @@ import (
 )
 
 type Speed interface {
-	SampleSize(int)
+	SampleSize(uint) uint
 	Reset()
 	StartMeasure() func()
 	StartAutoMeasure(time.Duration)
@@ -24,7 +24,7 @@ type speed struct {
 	unitsFunc func(int64) string
 }
 
-func NewSpeed(g *int64, n int) Speed {
+func NewSpeed(g *int64, n uint) Speed {
 	newSpeed := &speed{
 		target: g,
 		rate:   benchmark.NewSingleRate(n),
@@ -32,8 +32,8 @@ func NewSpeed(g *int64, n int) Speed {
 	return newSpeed
 }
 
-func (s *speed) SampleSize(n int) {
-	s.rate.SampleSize(n)
+func (s *speed) SampleSize(n uint) uint {
+	return s.rate.SampleSize(n)
 }
 
 func (s *speed) Reset() {
@@ -67,14 +67,14 @@ func (s *speed) StopAutoMeasure() {
 	s.ticker.Stop()
 }
 
-func (s *speed) UnitsFunc(fn func(int64) string) {
-	s.unitsFunc = fn
-}
-
 func (s *speed) RawRate() int64 {
 	return s.rate.AvgRate()
 }
 
 func (s *speed) Rate() string {
 	return s.unitsFunc(s.rate.AvgRate())
+}
+
+func (s *speed) UnitsFunc(fn func(int64) string) {
+	s.unitsFunc = fn
 }

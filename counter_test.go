@@ -30,9 +30,8 @@ func TestNewCounter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewCounter(tt.args.name); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewCounter() = %v, want %v", got, tt.want)
-			}
+			got := NewCounter(tt.args.name)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -153,7 +152,6 @@ func Test_counter_Current(t *testing.T) {
 			}
 			got, err := g.Current(tt.args.n)
 
-			fmt.Println(tt.want.err)
 			if tt.want.err {
 				assert.Error(t, err)
 			} else {

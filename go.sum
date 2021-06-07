@@ -2,6 +2,12 @@ github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/morrocker/benchmark v0.0.0-20210602154631-cf85face0369 h1:0e72CdxjpHsjTZeIIMUwzkomw7OYQi1uD34VgGrU6yk=
 github.com/morrocker/benchmark v0.0.0-20210602154631-cf85face0369/go.mod h1:rmMcKVgW6HkT6hCd4cxwjki9uYnN1+nBfnEwV69zGDo=
+github.com/morrocker/benchmark v0.0.0-20210604201224-71a3b1fb9679 h1:bXeKrT3WWsbg76djGZVVL1l0/TQA40w9yQMemXJH3ic=
+github.com/morrocker/benchmark v0.0.0-20210604201224-71a3b1fb9679/go.mod h1:rmMcKVgW6HkT6hCd4cxwjki9uYnN1+nBfnEwV69zGDo=
+github.com/morrocker/benchmark v0.0.0-20210605042132-37ca9b9258ee h1:OdFz3A5K1Vy/l3vOAnYw8ikVwcEg1pDBBCmVekq48P0=
+github.com/morrocker/benchmark v0.0.0-20210605042132-37ca9b9258ee/go.mod h1:rmMcKVgW6HkT6hCd4cxwjki9uYnN1+nBfnEwV69zGDo=
+github.com/morrocker/benchmark v0.0.0-20210605042952-9c82b225f734 h1:35Th8kxJpChQFDYiYRdV0OJKv6VoHQV/4kMe1wrZsxU=
+github.com/morrocker/benchmark v0.0.0-20210605042952-9c82b225f734/go.mod h1:rmMcKVgW6HkT6hCd4cxwjki9uYnN1+nBfnEwV69zGDo=
 github.com/morrocker/errors v0.0.0-20210323144609-d8629b6d420a h1:5eM0pV4lXVkRyiRUvR9Vw7eb2/dTCPYFylyoGsr4KrA=
 github.com/morrocker/errors v0.0.0-20210323144609-d8629b6d420a/go.mod h1:MaVAsvgPemd2kMO+0xRrt0yeflz4aaWX1it59qu3/gU=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
