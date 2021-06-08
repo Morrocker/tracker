@@ -1,103 +1,108 @@
 package tracker
 
-// import (
-// 	"fmt"
-// 	"time"
+import (
+	"time"
 
-// 	"github.com/morrocker/errors"
-// 	"github.com/morrocker/log"
-// )
+	"github.com/morrocker/errors"
+	"github.com/morrocker/log"
+)
 
-// type trackerGroup struct {
-// 	trackers   map[string]tracker
-// 	ticksLapse time.Duration
-// 	status     string
-// 	ticker     *time.Ticker
-// 	prntFunc   func()
-// }
+type Group interface {
+	AddGauge(string)
+	AddCounter(string)
+	AddSpeed(string, *int64, uint)
+	Counter(string) Counter
+	Gauge(string) Gauge
+	Speed(string) Speed
+	PrintFunc(func())
+	Print()
+	StartAutoPrint(time.Duration)
+	StopAutoPrint()
+	RestartAutoPrint()
+}
 
-// // NewGroup creates a new tracker group within a SuperTracker.
-// func newGroup(name string) *trackerGroup {
-// 	group := &trackerGroup{
-// 		trackers: make(map[string]tracker),
-// 	}
-// 	return group
-// }
+type group struct {
+	gauges      map[string]Gauge
+	counters    map[string]Counter
+	speeds      map[string]Speed
+	prntFunc    func()
+	ticker      *time.Ticker
+	tickerCicle time.Duration
+}
 
-// // AddGauge call AddGaugeOn using the default group
-// func (g *trackerGroup) addGauge(trackerName string, total interface{}) error {
-// 	op := "tracker_group.addGauge()"
-// 	if _, err := g.findTracker(trackerName); err == nil {
-// 		return errors.New(op, fmt.Sprintf("tracker name %s already taken", trackerName))
-// 	}
-// 	total64, err := getInt64(total)
-// 	if err != nil {
-// 		return errors.New(op, err)
-// 	}
-// 	g.trackers[trackerName] = newGauge(trackerName, total64)
-// 	return nil
-// }
+func NewGroup() Group {
+	newGroup := &group{
+		gauges:   make(map[string]Gauge),
+		counters: make(map[string]Counter),
+		speeds:   make(map[string]Speed),
+	}
+	return newGroup
+}
 
-// func (g *trackerGroup) findTracker(t string) (tracker, error) {
-// 	tracker := &gauge{}
-// 	for name, tracker := range g.trackers {
-// 		if t == name {
-// 			return tracker, nil
-// 		}
-// 	}
-// 	err := errors.New("tracker.findTracker()", "Did not find tracker "+t)
-// 	return tracker, err
-// }
+func (g *group) AddGauge(name string) {
+	g.gauges[name] = NewGauge(name)
+}
 
-// func (g *trackerGroup) printFunc(f func()) {
-// 	g.prntFunc = f
-// }
+func (g *group) Gauge(s string) Gauge {
+	ret, ok := g.gauges[s]
+	if !ok {
+		log.Errorln(errors.New("tracker.group.Gauge()", "gauge not found"))
+		return nil
+	}
+	return ret
+}
 
-// func (g *trackerGroup) print() {
-// 	if g.prntFunc == nil {
-// 		log.Errorln(errors.New("tracker_group.print()", "print function is not set!"))
-// 		return
-// 	}
-// 	g.prntFunc()
-// }
+func (g *group) AddCounter(name string) {
+	g.counters[name] = NewCounter(name)
+}
 
-// func (g *trackerGroup) setStatus(s string) {
-// 	g.status = s
-// }
+func (g *group) Counter(s string) Counter {
+	ret, ok := g.counters[s]
+	if !ok {
+		log.Errorln(errors.New("tracker.group.Counter()", "counter not found"))
+		return nil
+	}
+	return ret
+}
 
-// func (g *trackerGroup) startAutoPrint(d time.Duration) {
-// 	if err := g.checkTicker(); err == nil {
-// 		g.restartTicker()
-// 	}
-// 	g.ticksLapse = d
-// 	g.ticker = time.NewTicker(d)
+func (g *group) AddSpeed(name string, ptr *int64, sampleSize uint) {
+	g.speeds[name] = NewSpeed(ptr, sampleSize)
+}
 
-// 	go func() {
-// 		for range g.ticker.C {
-// 			g.print()
-// 		}
-// 	}()
-// }
+func (g *group) Speed(s string) Speed {
+	ret, ok := g.speeds[s]
+	if !ok {
+		log.Errorln(errors.New("tracker.group.Speed()", "speed not found"))
+		return nil
+	}
+	return ret
+}
 
-// func (g *trackerGroup) stopAutoPrint() error {
-// 	if err := g.checkTicker(); err != nil {
-// 		return errors.Extend("tracker_group.stopAutoPrint()", err)
-// 	}
-// 	g.ticker.Stop()
-// 	return nil
-// }
+func (g *group) PrintFunc(fn func()) {
+	g.prntFunc = fn
+}
 
-// func (g *trackerGroup) restartTicker() error {
-// 	if g.ticker == nil {
-// 		return errors.New("tracker_group.resetTicker()", "Ticker hasn't been set")
-// 	}
-// 	g.ticker.Reset(g.ticksLapse)
-// 	return nil
-// }
+func (g *group) Print() {
+	g.prntFunc()
+}
 
-// func (g *trackerGroup) checkTicker() error {
-// 	if g.ticker == nil {
-// 		return errors.New("tracker_group.checkTicker()", "Ticker hasn't been set")
-// 	}
-// 	return nil
-// }
+func (g *group) StartAutoPrint(t time.Duration) {
+	if g.ticker != nil {
+		g.ticker.Reset(t)
+		return
+	}
+	g.ticker = time.NewTicker(t)
+
+	go func() {
+		for range g.ticker.C {
+			g.Print()
+		}
+	}()
+}
+
+func (g *group) StopAutoPrint() {
+	g.ticker.Stop()
+}
+func (g *group) RestartAutoPrint() {
+	g.ticker.Reset(g.tickerCicle)
+}

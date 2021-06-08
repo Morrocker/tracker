@@ -39,10 +39,10 @@ func TestNewCounter(t *testing.T) {
 func Test_counter_SetCurrent(t *testing.T) {
 	type fields struct {
 		name    string
-		current uint64
+		current int64
 	}
 	type args struct {
-		n uint64
+		n int64
 	}
 	tests := []struct {
 		name   string
@@ -86,14 +86,14 @@ func Test_counter_SetCurrent(t *testing.T) {
 func Test_counter_Current(t *testing.T) {
 	type fields struct {
 		name    string
-		current uint64
+		current int64
 	}
 	type args struct {
 		n int64
 	}
 	type want struct {
 		err  bool
-		want uint64
+		want int64
 	}
 	tests := []struct {
 		name   string
@@ -165,12 +165,12 @@ func Test_counter_Current(t *testing.T) {
 func Test_counter_RawValue(t *testing.T) {
 	type fields struct {
 		name    string
-		current uint64
+		current int64
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   uint64
+		want   int64
 	}{
 		{
 			name: "basic RawValue() test",
@@ -197,8 +197,8 @@ func Test_counter_RawValue(t *testing.T) {
 func Test_counter_Value(t *testing.T) {
 	type fields struct {
 		name      string
-		current   uint64
-		unitsFunc func(uint64) string
+		current   int64
+		unitsFunc func(int64) string
 	}
 	tests := []struct {
 		name   string
@@ -210,7 +210,7 @@ func Test_counter_Value(t *testing.T) {
 			fields: fields{
 				name:    "simple counter",
 				current: 55,
-				unitsFunc: func(n uint64) string {
+				unitsFunc: func(n int64) string {
 					return fmt.Sprintf("%d", n)
 				},
 			},
@@ -221,7 +221,7 @@ func Test_counter_Value(t *testing.T) {
 			fields: fields{
 				name:    "simple counter",
 				current: 0,
-				unitsFunc: func(n uint64) string {
+				unitsFunc: func(n int64) string {
 					return fmt.Sprintf("%d", n)
 				},
 			},
@@ -253,21 +253,21 @@ func Test_counter_Value(t *testing.T) {
 func Test_counter_UnitsFunc(t *testing.T) {
 	type fields struct {
 		name      string
-		current   uint64
-		unitsFunc func(uint64) string
+		current   int64
+		unitsFunc func(int64) string
 	}
 	type args struct {
-		f func(uint64) string
+		f func(int64) string
 	}
 	type want struct {
 		err bool
-		f   func(uint64) string
+		f   func(int64) string
 		ret string
 	}
-	testFunc := func(n uint64) string {
+	testFunc := func(n int64) string {
 		return fmt.Sprintf("%d", n)
 	}
-	testFunc2 := func(n uint64) string {
+	testFunc2 := func(n int64) string {
 		return fmt.Sprintf("bad%d", n)
 	}
 	tests := []struct {

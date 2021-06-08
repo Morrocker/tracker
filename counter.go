@@ -2,22 +2,21 @@ package tracker
 
 import (
 	"sync/atomic"
-
-	"github.com/morrocker/errors"
 )
 
 type Counter interface {
-	SetCurrent(n uint64)
-	Current(n int64) (uint64, error)
-	RawValue() uint64
+	SetCurrent(n int64)
+	Current(n int64) (int64, error)
+	RawValue() int64
 	Value() string
-	UnitsFunc(func(uint64) string)
+	UnitsFunc(func(int64) string)
+	pointer() *int64
 }
 
 type counter struct {
 	name      string
-	current   uint64
-	unitsFunc func(uint64) string
+	current   int64
+	unitsFunc func(int64) string
 }
 
 func NewCounter(name string) Counter {
@@ -28,32 +27,29 @@ func NewCounter(name string) Counter {
 	return newCounter
 }
 
-func (g *counter) SetCurrent(n uint64) {
-	atomic.CompareAndSwapUint64(&g.current, g.current, n)
+func (c *counter) SetCurrent(n int64) {
+	atomic.CompareAndSwapInt64(&c.current, c.current, n)
 }
 
-func (g *counter) Current(n int64) (uint64, error) {
-	if n < 0 {
-		if (int64(g.current) + n) < 0 {
-			return 0, errors.New("tracker.counter.Current()", "Underflow error. Current substraction value is negative")
-		}
-		atomic.AddUint64(&g.current, -uint64(n))
-	} else {
-		atomic.AddUint64(&g.current, uint64(n))
-	}
-	return g.current, nil
+func (c *counter) Current(n int64) (int64, error) {
+	atomic.AddInt64(&c.current, n)
+	return c.current, nil
 }
 
-func (g *counter) RawValue() uint64 {
-	return g.current
+func (c *counter) RawValue() int64 {
+	return c.current
 }
-func (g *counter) Value() string {
-	if g.unitsFunc == nil {
+func (c *counter) Value() string {
+	if c.unitsFunc == nil {
 		return "unitsFunction not set"
 	}
-	return g.unitsFunc(g.current)
+	return c.unitsFunc(c.current)
 }
 
-func (g *counter) UnitsFunc(f func(uint64) string) {
-	g.unitsFunc = f
+func (c *counter) UnitsFunc(f func(int64) string) {
+	c.unitsFunc = f
+}
+
+func (c *counter) pointer() *int64 {
+	return &c.current
 }

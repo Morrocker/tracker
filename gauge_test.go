@@ -10,9 +10,7 @@ import (
 
 func TestNewGauge(t *testing.T) {
 	type args struct {
-		name    string
-		current uint64
-		total   uint64
+		name string
 	}
 	tests := []struct {
 		name string
@@ -22,20 +20,18 @@ func TestNewGauge(t *testing.T) {
 		{
 			name: "new gauge",
 			args: args{
-				name:    "object A",
-				current: 0,
-				total:   100,
+				name: "object A",
 			},
 			want: &gauge{
 				name:    "object A",
 				current: 0,
-				total:   100,
+				total:   0,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := NewGauge(tt.args.name, tt.args.total)
+			got := NewGauge(tt.args.name)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -44,16 +40,16 @@ func TestNewGauge(t *testing.T) {
 func Test_gauge_SetCurrent(t *testing.T) {
 	type fields struct {
 		name    string
-		current uint64
+		current int64
 	}
 	type args struct {
-		n uint64
+		n int64
 	}
 	tests := []struct {
 		name   string
 		fields fields
 		args   args
-		want   uint64
+		want   int64
 	}{
 		{
 			name: "basic set current test",
@@ -83,14 +79,14 @@ func Test_gauge_SetCurrent(t *testing.T) {
 func Test_gauge_Current(t *testing.T) {
 	type fields struct {
 		name    string
-		current uint64
+		current int64
 	}
 	type args struct {
 		n int64
 	}
 	type want struct {
 		err  bool
-		curr uint64
+		curr int64
 	}
 	tests := []struct {
 		name   string
@@ -161,16 +157,16 @@ func Test_gauge_Current(t *testing.T) {
 func Test_gauge_SetTotal(t *testing.T) {
 	type fields struct {
 		name  string
-		total uint64
+		total int64
 	}
 	type args struct {
-		n uint64
+		n int64
 	}
 	tests := []struct {
 		name   string
 		fields fields
 		args   args
-		want   uint64
+		want   int64
 	}{
 		{
 			name: "basic set current test",
@@ -200,15 +196,15 @@ func Test_gauge_SetTotal(t *testing.T) {
 func Test_gauge_Total(t *testing.T) {
 	type fields struct {
 		name  string
-		total uint64
+		total int64
 	}
 	type args struct {
 		n int64
 	}
 	type want struct {
 		err   bool
-		total uint64
-		ret   uint64
+		total int64
+		ret   int64
 	}
 	tests := []struct {
 		name   string
@@ -270,12 +266,12 @@ func Test_gauge_Total(t *testing.T) {
 func Test_gauge_RawValues(t *testing.T) {
 	type fields struct {
 		name    string
-		current uint64
-		total   uint64
+		current int64
+		total   int64
 	}
 	type want struct {
-		current uint64
-		total   uint64
+		current int64
+		total   int64
 	}
 	tests := []struct {
 		name   string
@@ -312,9 +308,9 @@ func Test_gauge_RawValues(t *testing.T) {
 func Test_gauge_Value(t *testing.T) {
 	type fields struct {
 		name      string
-		current   uint64
-		total     uint64
-		unitsFunc func(uint64) string
+		current   int64
+		total     int64
+		unitsFunc func(int64) string
 	}
 	type want struct {
 		current string
@@ -331,7 +327,7 @@ func Test_gauge_Value(t *testing.T) {
 				name:    "simple gauge",
 				current: 55,
 				total:   100,
-				unitsFunc: func(n uint64) string {
+				unitsFunc: func(n int64) string {
 					return fmt.Sprintf("%d", n)
 				},
 			},
@@ -371,22 +367,22 @@ func Test_gauge_Value(t *testing.T) {
 func Test_gauge_UnitsFunc(t *testing.T) {
 	type fields struct {
 		name    string
-		current uint64
-		total   uint64
+		current int64
+		total   int64
 	}
 	type args struct {
-		f func(uint64) string
+		f func(int64) string
 	}
 	type want struct {
 		err   bool
-		f     func(uint64) string
+		f     func(int64) string
 		curr  string
 		total string
 	}
-	testFunc := func(n uint64) string {
+	testFunc := func(n int64) string {
 		return fmt.Sprintf("%d", n)
 	}
-	testFunc2 := func(n uint64) string {
+	testFunc2 := func(n int64) string {
 		return fmt.Sprintf("bad%d", n)
 	}
 	tests := []struct {

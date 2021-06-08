@@ -2,67 +2,50 @@ package tracker
 
 import (
 	"sync/atomic"
-
-	"github.com/morrocker/errors"
 )
 
 type Gauge interface {
-	SetCurrent(n uint64)
-	Current(n int64) (uint64, error)
-	SetTotal(n uint64)
-	Total(n int64) (uint64, error)
-	RawValues() (uint64, uint64)
+	SetCurrent(n int64)
+	Current(n int64) (int64, error)
+	SetTotal(n int64)
+	Total(n int64) (int64, error)
+	RawValues() (int64, int64)
 	Values() (string, string)
-	UnitsFunc(func(uint64) string)
+	UnitsFunc(func(int64) string)
+	pointers() (*int64, *int64)
 }
 
 type gauge struct {
 	name      string
-	current   uint64
-	total     uint64
-	unitsFunc func(uint64) string
+	current   int64
+	total     int64
+	unitsFunc func(int64) string
 }
 
-func NewGauge(name string, total uint64) Gauge {
+func NewGauge(name string) Gauge {
 	newGauge := &gauge{
-		name:    name,
-		current: 0,
-		total:   total,
+		name: name,
 	}
 	return newGauge
 }
 
-func (g *gauge) SetCurrent(n uint64) {
-	atomic.CompareAndSwapUint64(&g.current, g.current, n)
+func (g *gauge) SetCurrent(n int64) {
+	atomic.CompareAndSwapInt64(&g.current, g.current, n)
 }
-func (g *gauge) Current(n int64) (uint64, error) {
-	if n < 0 {
-		if (int64(g.current) + n) < 0 {
-			return 0, errors.New("tracker.gauge.Current()", "Underflow error. Current substraction value is negative")
-		}
-		atomic.AddUint64(&g.current, -uint64(n))
-	} else {
-		atomic.AddUint64(&g.current, uint64(n))
-	}
+func (g *gauge) Current(n int64) (int64, error) {
+	atomic.AddInt64(&g.current, n)
 	return g.current, nil
 }
 
-func (g *gauge) SetTotal(n uint64) {
-	atomic.CompareAndSwapUint64(&g.total, g.total, n)
+func (g *gauge) SetTotal(n int64) {
+	atomic.CompareAndSwapInt64(&g.total, g.total, n)
 }
-func (g *gauge) Total(n int64) (uint64, error) {
-	if n < 0 {
-		if (int64(g.total) + n) < 0 {
-			return 0, errors.New("tracker.gauge.Current()", "Underflow error. Current substraction value is negative")
-		}
-		atomic.AddUint64(&g.total, -uint64(n))
-	} else {
-		atomic.AddUint64(&g.total, uint64(n))
-	}
+func (g *gauge) Total(n int64) (int64, error) {
+	atomic.AddInt64(&g.total, n)
 	return g.total, nil
 }
 
-func (g *gauge) RawValues() (uint64, uint64) {
+func (g *gauge) RawValues() (int64, int64) {
 	return g.current, g.total
 }
 func (g *gauge) Values() (string, string) {
@@ -72,6 +55,10 @@ func (g *gauge) Values() (string, string) {
 	return g.unitsFunc(g.current), g.unitsFunc(g.total)
 }
 
-func (g *gauge) UnitsFunc(f func(uint64) string) {
+func (g *gauge) UnitsFunc(f func(int64) string) {
 	g.unitsFunc = f
+}
+
+func (g *gauge) pointers() (*int64, *int64) {
+	return &g.current, &g.total
 }
