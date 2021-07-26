@@ -23,7 +23,6 @@ func TestNewGauge(t *testing.T) {
 				name: "object A",
 			},
 			want: &gauge{
-				name:    "object A",
 				current: 0,
 				total:   0,
 			},
@@ -66,7 +65,6 @@ func Test_gauge_SetCurrent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := &gauge{
-				name:    tt.fields.name,
 				current: tt.fields.current,
 			}
 			g.SetCurrent(tt.args.n)
@@ -140,7 +138,6 @@ func Test_gauge_Current(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := &gauge{
-				name:    tt.fields.name,
 				current: tt.fields.current,
 			}
 			got, err := g.Current(tt.args.n)
@@ -183,7 +180,6 @@ func Test_gauge_SetTotal(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := &gauge{
-				name:  tt.fields.name,
 				total: tt.fields.total,
 			}
 			g.SetTotal(tt.args.n)
@@ -246,7 +242,6 @@ func Test_gauge_Total(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := &gauge{
-				name:  tt.fields.name,
 				total: tt.fields.total,
 			}
 			got, err := g.Total(tt.args.n)
@@ -294,7 +289,6 @@ func Test_gauge_RawValues(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := &gauge{
-				name:    tt.fields.name,
 				current: tt.fields.current,
 				total:   tt.fields.total,
 			}
@@ -352,7 +346,6 @@ func Test_gauge_Value(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := &gauge{
-				name:      tt.fields.name,
 				current:   tt.fields.current,
 				total:     tt.fields.total,
 				unitsFunc: tt.fields.unitsFunc,
@@ -429,7 +422,6 @@ func Test_gauge_UnitsFunc(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := &gauge{
-				name:    tt.fields.name,
 				total:   tt.fields.total,
 				current: tt.fields.current,
 			}

@@ -12,11 +12,10 @@ type Gauge interface {
 	RawValues() (int64, int64)
 	Values() (string, string)
 	UnitsFunc(func(int64) string)
-	pointers() (*int64, *int64)
+	Pointers() (*int64, *int64)
 }
 
 type gauge struct {
-	name      string
 	current   int64
 	total     int64
 	unitsFunc func(int64) string
@@ -24,7 +23,6 @@ type gauge struct {
 
 func NewGauge(name string) Gauge {
 	newGauge := &gauge{
-		name: name,
 	}
 	return newGauge
 }
@@ -59,6 +57,6 @@ func (g *gauge) UnitsFunc(f func(int64) string) {
 	g.unitsFunc = f
 }
 
-func (g *gauge) pointers() (*int64, *int64) {
+func (g *gauge) Pointers() (*int64, *int64) {
 	return &g.current, &g.total
 }

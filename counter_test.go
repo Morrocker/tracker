@@ -23,7 +23,6 @@ func TestNewCounter(t *testing.T) {
 				"object A",
 			},
 			want: &counter{
-				name:    "object A",
 				current: 0,
 			},
 		},
@@ -73,7 +72,6 @@ func Test_counter_SetCurrent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := &counter{
-				name:    tt.fields.name,
 				current: tt.fields.current,
 			}
 			g.SetCurrent(tt.args.n)
@@ -147,7 +145,6 @@ func Test_counter_Current(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := &counter{
-				name:    tt.fields.name,
 				current: tt.fields.current,
 			}
 			got, err := g.Current(tt.args.n)
@@ -184,7 +181,6 @@ func Test_counter_RawValue(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := &counter{
-				name:    tt.fields.name,
 				current: tt.fields.current,
 			}
 			if got := g.RawValue(); got != tt.want {
@@ -239,7 +235,6 @@ func Test_counter_Value(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := &counter{
-				name:      tt.fields.name,
 				current:   tt.fields.current,
 				unitsFunc: tt.fields.unitsFunc,
 			}
@@ -310,7 +305,6 @@ func Test_counter_UnitsFunc(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := &counter{
-				name:      tt.fields.name,
 				current:   tt.fields.current,
 				unitsFunc: tt.fields.unitsFunc,
 			}

@@ -10,18 +10,16 @@ type Counter interface {
 	RawValue() int64
 	Value() string
 	UnitsFunc(func(int64) string)
-	pointer() *int64
+	Pointer() *int64
 }
 
 type counter struct {
-	name      string
 	current   int64
 	unitsFunc func(int64) string
 }
 
 func NewCounter(name string) Counter {
 	newCounter := &counter{
-		name:    name,
 		current: 0,
 	}
 	return newCounter
@@ -50,6 +48,6 @@ func (c *counter) UnitsFunc(f func(int64) string) {
 	c.unitsFunc = f
 }
 
-func (c *counter) pointer() *int64 {
+func (c *counter) Pointer() *int64 {
 	return &c.current
 }
