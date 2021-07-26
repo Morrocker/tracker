@@ -18,7 +18,7 @@ type counter struct {
 	unitsFunc func(int64) string
 }
 
-func NewCounter(name string) Counter {
+func NewCounter() Counter {
 	newCounter := &counter{
 		current: 0,
 	}

@@ -29,7 +29,7 @@ func TestNewCounter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := NewCounter(tt.args.name)
+			got := NewCounter()
 			assert.Equal(t, tt.want, got)
 		})
 	}
