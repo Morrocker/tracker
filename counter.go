@@ -10,6 +10,7 @@ type Counter interface {
 	RawValue() int64
 	Value() string
 	UnitsFunc(func(int64) string)
+	Reset()
 	Pointer() *int64
 }
 
@@ -46,6 +47,10 @@ func (c *counter) Value() string {
 
 func (c *counter) UnitsFunc(f func(int64) string) {
 	c.unitsFunc = f
+}
+
+func (c *counter) Reset(){
+	atomic.CompareAndSwapInt64(&c.current, c.current, 0)
 }
 
 func (c *counter) Pointer() *int64 {

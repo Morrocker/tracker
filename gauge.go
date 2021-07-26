@@ -12,6 +12,7 @@ type Gauge interface {
 	RawValues() (int64, int64)
 	Values() (string, string)
 	UnitsFunc(func(int64) string)
+	Reset()
 	Pointers() (*int64, *int64)
 }
 
@@ -55,6 +56,11 @@ func (g *gauge) Values() (string, string) {
 
 func (g *gauge) UnitsFunc(f func(int64) string) {
 	g.unitsFunc = f
+}
+
+func (g *gauge) Reset(){
+	atomic.CompareAndSwapInt64(&g.current, g.current, 0)
+	atomic.CompareAndSwapInt64(&g.total, g.total, 0)
 }
 
 func (g *gauge) Pointers() (*int64, *int64) {
